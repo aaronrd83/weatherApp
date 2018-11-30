@@ -1,10 +1,10 @@
 import React from "react";
-import "./WeatherDisplay.css";
+import "./CurrentWeather.css";
 
-const WeatherDisplay = props => (  
+const CurrentWeather = props => (  
   <div
     style={{ height: 300, clear: "both", paddingTop: 5, textAlign: "center" }}
-    className="WeatherDisplay"
+    className="CurrentWeather"
   >
     {/* <img alt={props.name} src={props.image} /> */}
     <div>
@@ -24,4 +24,4 @@ const WeatherDisplay = props => (
   
 );
 
-export default WeatherDisplay;
+export default CurrentWeather;
