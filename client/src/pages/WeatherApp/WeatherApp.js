@@ -3,11 +3,10 @@ import API from "../../utils/API";
 import GeoCodeAPI from "../../utils/GeoCodeAPI";
 import Navbar from "../../components/Navbar";
 // import WeatherAlert from "../../components/WeatherAlert";
-import Jumbotron from "../../components/Jumbotron";
 import WeatherIcons from "../../components/WeatherIcons";
 import CurrentWeather from "../../components/CurrentWeather";
 import HourlyForecast from "../../components/HourlyForecast";
-import DarkskyMap from 'react-darksky-map';
+import Map from "../../components/Map";
 import FiveDayForecast from "../../components/FiveDayForecast";
 import Footer from "../../components/Footer";
 
@@ -16,10 +15,11 @@ class WeatherApp extends Component {
     state = {
         geoCode: [],
         address: "dallas,tx",
-        latitude: "32.7767",
-        longitude: "-96.7970",
+        latitude: 32.7767,
+        longitude: -96.7970,
         image: "",
         alert: "",
+        timeZone: "",
         currently: "",
         currentTemp: "",
         feelsLike: "",
@@ -29,34 +29,9 @@ class WeatherApp extends Component {
         precipChance: "",
         currentWeather: [],
         dailyWeather: [],
-        nextFiveDays: [],
         hourlyWeather: [],
-        nextEighteenHours: [],
-        backgroundImage: ""
-    };
-
-    setBackgroundImage() {
-        if (this.state.image === "clear-day") {
-            this.setState({ backgroundImage: "background-image: url('../../img/clear-day.jpg')" });
-        } else if (this.state.image === "clear-night") {
-            this.setState({ backgroundImage: "background-image: url('../../img/clear-night.jpg')" });
-        } else if (this.state.image === "rain") {
-            this.setState({ backgroundImage: "background-image: url('../../img/rainy.jpg')" });
-        } else if (this.state.image === "snow") {
-            this.setState({ backgroundImage: "background-image: url('../../img/snowy.jpg')" });
-        } else if (this.state.image === "sleet") {
-            this.setState({ backgroundImage: "background-image: url('../../img/snowy.jpg')" });
-        } else if (this.state.image === "wind") {
-            this.setState({ backgroundImage: "background-image: url('../../img/windy.jpg')" });
-        } else if (this.state.image === "fog") {
-            this.setState({ backgroundImage: "background-image: url('../../img/foggy.jpg')" });
-        } else if (this.state.image === "cloudy") {
-            this.setState({ backgroundImage: "background-image: url('../../img/cloudy-day.jpg')" });
-        } else if (this.state.image === "partly-cloudy-day") {
-            this.setState({ backgroundImage: "background-image: url('../../img/cloudy-day.jpg')" });
-        } else if (this.state.image === "partly-cloudy-night") {
-            this.setState({ backgroundImage: "background-image: url('../../img/cloudy-night.jpg')" });
-        }
+        backgroundImage: "",
+        currentTime: ""
     };
 
     handleInputChange = event => {
@@ -91,6 +66,8 @@ class WeatherApp extends Component {
                     .then(res => {
                         this.setState({
                             currentWeather: res.data,
+                            // alert: res.data.alerts[0],
+                            timeZone: res.data.timezone,
                             image: res.data.currently.icon,
                             currentSummary: res.data.currently.summary,
                             currentTemp: res.data.currently.temperature,
@@ -101,11 +78,13 @@ class WeatherApp extends Component {
                             dailyHigh: res.data.daily.data[0].temperatureHigh,
                             dewPoint: res.data.currently.dewPoint,
                             precipChance: res.data.currently.precipProbability,
+                            currentTime: res.data.currently.time
                         })
-                        this.setBackgroundImage();
                         console.log(this.state.currentWeather);
-                        console.log(this.state.hourlyWeather);
+                        // console.log(this.state.hourlyWeather);
                         console.log(`
+                        Time Zone: ${this.state.timeZone}
+                        Alert: ${this.state.alert}
                         Current Temp: ${this.state.currentTemp} 
                         Feels Like: ${this.state.feelsLike}
                         Time: ${this.state.currentWeather.currently.time}
@@ -116,13 +95,15 @@ class WeatherApp extends Component {
                         Precip Chance: ${this.state.precipChance}
                         Image: ${this.state.image}
                         background-image: ${this.state.backgroundImage}
+                        Current Time: ${this.state.currentTime}
                         `)
                     })
+                // .value().trim();
             })
             .catch(error => console.log(error));
     };  //closes handleFormSubmit
 
-    componentWillMount() {
+    componentDidMount() {
         GeoCodeAPI.search(
             this.state.address,
             console.log(`
@@ -148,6 +129,8 @@ class WeatherApp extends Component {
                     .then(res => {
                         this.setState({
                             currentWeather: res.data,
+                            // alert: res.data.alerts[0],
+                            timeZone: res.data.timezone,
                             image: res.data.currently.icon,
                             currentSummary: res.data.currently.summary,
                             currentTemp: res.data.currently.temperature,
@@ -159,9 +142,11 @@ class WeatherApp extends Component {
                             dewPoint: res.data.currently.dewPoint,
                             precipChance: res.data.currently.precipProbability,
                         })
-                        this.setBackgroundImage();
+                        // this.setBackgroundImage();
                         console.log(this.state.currentWeather);
                         console.log(`
+                        Time Zone: ${this.state.timeZone}
+                        Alert: ${this.state.alert}
                         Current Temp: ${this.state.currentTemp} 
                         Feels Like: ${this.state.feelsLike}
                         Time: ${this.state.currentWeather.currently.time}
@@ -185,12 +170,13 @@ class WeatherApp extends Component {
                     <Navbar
                         value={this.state.search}
                         handleInputChange={this.handleInputChange}
-                        handleFormSubmit={this.handleFormSubmit} />
+                        handleFormSubmit={this.handleFormSubmit}
+                    />
 
                     {/* <WeatherAlert /> */}
 
-                    {/* <Jumbotron> */}
                     <WeatherIcons />
+
                     <CurrentWeather
                         image={this.state.image}
                         currentSummary={this.state.currentSummary}
@@ -199,16 +185,17 @@ class WeatherApp extends Component {
                         dailyLow={this.state.dailyLow}
                         dailyHigh={this.state.dailyHigh}
                     />
-                    {/* </Jumbotron> */}
 
                     <div id="scrollContainer">
                         {(this.state.hourlyWeather.slice(1, 19)).map((hourly, i) => (
                             <HourlyForecast
+                                timeZone={this.state.timeZone}
                                 hourlyIcon={hourly.icon}
                                 hourlyTime={hourly.time}
                                 hourlyTemp={hourly.temperature}
                                 hourlyPrecip={hourly.precipProbability}
                                 key={i}
+
                             />
                         ))}
                     </div>
@@ -227,12 +214,12 @@ class WeatherApp extends Component {
                         ))}
                     </div>
                 </div>
-                <DarkskyMap
+
+                <Map
                     lat={this.state.latitude}
                     lng={this.state.longitude}
                     zoom={8}
-                    mapField="temp"
-                />
+                    mapField="temp" />
 
                 <Footer />
             </div>
